@@ -223,8 +223,23 @@ class _TransactionCardSheetsState extends State<TransactionCardSheets>
             key: Key(transaction.id), // Chave única para controle do widget
             direction:
                 DismissDirection
-                    .endToStart, // Permite deslizar da direita para esquerda
+                    .horizontal, // Permite deslizar da direita para esquerda
             background: Container(
+              alignment:
+                  Alignment.centerLeft, // Ícone aparece alinhado à direita
+              padding: const EdgeInsets.only(
+                left: 20.0,
+              ), // Espaçamento interno
+              decoration: BoxDecoration(
+                color: Colors.blue, // Fundo vermelho para exclusão
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.edit,
+                color: Colors.white,
+              ), // Ícone de exclusão
+            ),
+            secondaryBackground: Container(
               alignment:
                   Alignment.centerRight, // Ícone aparece alinhado à direita
               padding: const EdgeInsets.only(

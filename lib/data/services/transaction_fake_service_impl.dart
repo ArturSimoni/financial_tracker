@@ -118,4 +118,10 @@ class TransactionFakeServiceImpl implements TransactionStorageContract {
       return Error(DefaultError('Erro ao Transações: ${e.toString()}'));
     }
   }
+  
+  @override
+  Future<Result<void, Failure>> updateTransacion(TransactionEntity transaction) {
+    // TODO: implement updateTransacion
+    throw UnimplementedError();
+  }
 }

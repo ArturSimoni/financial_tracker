@@ -46,4 +46,8 @@ class TransactionRepositoryImpl implements TransactionRepositoryContract {
   ) {
     return _dataSource.fetchTransacionsByDate(startDate, endDate);
   }
+
+  Future<Result<void, Failure>> updateTransacion(TransactionEntity transaction) {
+    return _dataSource.updateTransacion(transaction);
+  }
 }
