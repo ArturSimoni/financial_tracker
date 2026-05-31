@@ -5,25 +5,22 @@ import '../../common/utils/formatter.dart';
 import '../../domain/entity/transaction_entity.dart';
 import 'package:flutter/material.dart';
 
-/// widget que exibe uma lista de transações de receitas e despesas
 class TransactionCardSheets extends StatefulWidget {
-  final List<TransactionEntity>
-  incomeTransactions; // Lista de transações de receitas
-  final List<TransactionEntity>
-  expenseTransactions; // Lista de transações de despesas
-  final Function(String id)
-  onDelete; // Callback para deletar uma transação pelo ID
+  final List<TransactionEntity> incomeTransactions;
+  final List<TransactionEntity> expenseTransactions;
+  final Function(String id) onDelete;
 
-  final Command1<void, Failure, TransactionEntity>
-  undoDelete; // Callback para desfazer exclusão
-  final BuildContext
-  scaffoldContext; // Contexto do Scaffold para exibir SnackBars
+  final Function(TransactionEntity transaction) onEdit;
+
+  final Command1<void, Failure, TransactionEntity> undoDelete;
+  final BuildContext scaffoldContext;
 
   const TransactionCardSheets({
     super.key,
     required this.incomeTransactions,
     required this.expenseTransactions,
     required this.onDelete,
+    required this.onEdit, // Requerido no construtor
     required this.undoDelete,
     required this.scaffoldContext,
   });
@@ -39,19 +36,17 @@ class _TransactionCardSheetsState extends State<TransactionCardSheets>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(
-      length: 2,
-      vsync: this,
-    ); // 2 abas: Receitas e Despesas
+    _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
-      if (mounted)
-        setState(() {}); // Atualiza o estado quando troca de aba acontece
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 
   @override
   void dispose() {
-    _tabController.dispose(); // Limpa o controlador para evitar leaks
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -61,34 +56,30 @@ class _TransactionCardSheetsState extends State<TransactionCardSheets>
     final colorScheme = theme.colorScheme;
 
     return Card(
-      elevation: 8, // Elevação do card para sombra
-      margin: const EdgeInsets.all(12), // Margem externa do card
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ), // Bordas arredondadas
+      elevation: 8,
+      margin: const EdgeInsets.all(12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Column(
         children: [
           Column(
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: colorScheme.tertiary.withValues(
-                    alpha: 0.15,
-                  ), // Fundo com transparência
+                  color: colorScheme.tertiary.withValues(alpha: 0.15),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
-                  ), // Apenas bordas superiores arredondadas
+                  ),
                 ),
                 child: TabBar(
-                  controller: _tabController, // Controlador das abas
+                  controller: _tabController,
                   tabs: [
                     _buildTab(
-                      TransactionType.income.namePlural, // Título da aba
-                      Icons.arrow_upward, // Ícone da aba
-                      0, // Índice da aba
+                      TransactionType.income.namePlural,
+                      Icons.arrow_upward,
+                      0,
                       colorScheme.primary, // Cor ativa
-                      colorScheme.primary.withValues(alpha: 0.5), // Cor inativa
+                      colorScheme.primary.withValues(alpha: 0.5),
                     ),
                     _buildTab(
                       TransactionType.expense.namePlural,
@@ -99,34 +90,31 @@ class _TransactionCardSheetsState extends State<TransactionCardSheets>
                     ),
                   ],
                   indicatorColor:
-                      _tabController.index ==
-                              0 // Cor do indicador da aba selecionada
+                      _tabController.index == 0
                           ? colorScheme.primary
                           : colorScheme.secondary,
-                  indicatorSize:
-                      TabBarIndicatorSize
-                          .label, // Indicador do tamanho do label
+                  indicatorSize: TabBarIndicatorSize.label,
                 ),
               ),
               ClipRRect(
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(20),
                   bottomRight: Radius.circular(20),
-                ), // Arredonda bordas inferiores para combinar com o card
+                ),
                 child: SizedBox(
-                  height: 290, // Altura fixa do conteúdo da aba
+                  height: 290,
                   child: TabBarView(
                     controller: _tabController,
                     children: [
                       _buildTransactionList(
                         context,
-                        widget.incomeTransactions, // Lista de receitas
+                        widget.incomeTransactions,
                         colorScheme.primary,
                         TransactionType.income.namePlural,
                       ),
                       _buildTransactionList(
                         context,
-                        widget.expenseTransactions, // Lista de despesas
+                        widget.expenseTransactions,
                         colorScheme.secondary,
                         TransactionType.expense.namePlural,
                       ),
@@ -148,25 +136,20 @@ class _TransactionCardSheetsState extends State<TransactionCardSheets>
     Color activeColor,
     Color inactiveColor,
   ) {
-    final isSelected =
-        _tabController.index == index; // Verifica se a aba está selecionada
-    final color =
-        isSelected ? activeColor : inactiveColor; // Cor ativa ou inativa
+    final isSelected = _tabController.index == index;
+    final color = isSelected ? activeColor : inactiveColor;
 
     return Tab(
       child: Row(
-        mainAxisSize: MainAxisSize.min, // Tamanho da linha adaptado ao conteúdo
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: color), // Ícone da aba com a cor correta
-          const SizedBox(width: 8), // Espaço entre ícone e texto
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 8),
           Text(
             title, // Texto da aba
             style: TextStyle(
-              color: color, // Cor do texto (ativa ou inativa)
-              fontWeight:
-                  isSelected
-                      ? FontWeight.bold
-                      : FontWeight.normal, // Negrito se selecionada
+              color: color,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
         ],
@@ -183,7 +166,7 @@ class _TransactionCardSheetsState extends State<TransactionCardSheets>
     if (transactions.isEmpty) {
       return Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // Centraliza conteúdo
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               title ==
@@ -191,16 +174,16 @@ class _TransactionCardSheetsState extends State<TransactionCardSheets>
                           .income
                           .namePlural // Receitas
                   ? Icons.savings
-                  : Icons.shopping_cart, // Ícone condicional
+                  : Icons.shopping_cart,
               size: 48,
               color: Colors.grey,
             ),
             const SizedBox(height: 8),
             Text(
-              'Sem ${title.toLowerCase()} registradas', // Mensagem de lista vazia
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Colors.grey[600],
-              ), // Estilo e cor do texto
+              'Sem ${title.toLowerCase()} registradas',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
             ),
           ],
         ),
@@ -208,98 +191,80 @@ class _TransactionCardSheetsState extends State<TransactionCardSheets>
     }
 
     return Scrollbar(
-      thumbVisibility: true, // Mostra a barra de rolagem sempre
+      thumbVisibility: true,
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(
-          vertical: 8,
-        ), // Espaçamento vertical na lista
-        itemCount: transactions.length, // Quantidade de itens da lista
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: transactions.length,
         itemBuilder: (context, index) {
           final transaction = transactions[index];
-          final undoTransaction =
-              transaction.copyWith(); // Cópia para desfazer exclusão
+          final undoTransaction = transaction.copyWith();
 
           return Dismissible(
-            key: Key(transaction.id), // Chave única para controle do widget
-            direction:
-                DismissDirection
-                    .horizontal, // Permite deslizar da direita para esquerda
+            key: Key(transaction.id),
+            direction: DismissDirection.horizontal,
+            confirmDismiss: (direction) async {
+              if (direction == DismissDirection.startToEnd) {
+                widget.onEdit(transaction);
+                return false;
+              }
+              return true;
+            },
             background: Container(
-              alignment:
-                  Alignment.centerLeft, // Ícone aparece alinhado à direita
-              padding: const EdgeInsets.only(
-                left: 20.0,
-              ), // Espaçamento interno
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.only(left: 20.0),
               decoration: BoxDecoration(
-                color: Colors.blue, // Fundo vermelho para exclusão
+                color: Colors.blue, // Fundo azul para edição
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
-                Icons.edit,
-                color: Colors.white,
-              ), // Ícone de exclusão
+              child: const Icon(Icons.edit, color: Colors.white),
             ),
             secondaryBackground: Container(
-              alignment:
-                  Alignment.centerRight, // Ícone aparece alinhado à direita
-              padding: const EdgeInsets.only(
-                right: 20.0,
-              ), // Espaçamento interno
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 20.0),
               decoration: BoxDecoration(
-                color: Colors.red, // Fundo vermelho para exclusão
+                color: Colors.red,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
-                Icons.delete,
-                color: Colors.white,
-              ), // Ícone de exclusão
+              child: const Icon(Icons.delete, color: Colors.white),
             ),
             onDismissed: (direction) async {
-              
-              await widget.onDelete(
-                transaction.id,
-              ); // Chama callback para deletar transação
+              final messenger = ScaffoldMessenger.of(widget.scaffoldContext);
 
-              ScaffoldMessenger.of(widget.scaffoldContext).clearSnackBars();
-              // Limpa snackbars anteriores para evitar sobreposição
+              await widget.onDelete(transaction.id);
 
-              ScaffoldMessenger.of(widget.scaffoldContext).showSnackBar(
+              messenger.clearSnackBars();
+
+              messenger.showSnackBar(
                 SnackBar(
-                  content: Text(
-                    '${transaction.title} excluída!!!',
-                  ), // Mensagem de exclusão
-                  backgroundColor:
-                      Colors.pinkAccent, // Cor do snackbar vermelho
+                  content: Text('${transaction.title} excluída!!!'),
+                  backgroundColor: Colors.pinkAccent,
                   action: SnackBarAction(
-                    label: 'DESFAZER', // Botão para desfazer
+                    label: 'DESFAZER',
                     textColor: Colors.white,
                     onPressed: () async {
-                      // Chama callback para desfazer exclusão
                       await widget.undoDelete.execute(undoTransaction);
-                      //print(widget.undoDelete.resultSignal.value);
+
                       if (widget.undoDelete.resultSignal.value?.isSuccess ??
                           false) {
-                        ScaffoldMessenger.of(
-                          widget.scaffoldContext,
-                        ).showSnackBar(
+                        messenger.showSnackBar(
                           SnackBar(
-                            content: Text(
-                              '${transaction.title} restaurada!',
-                            ), // Mensagem de restauração
-                            backgroundColor:
-                                Colors.green, // Cor do snackbar verde
+                            content: Text('${transaction.title} restaurada!'),
+                            backgroundColor: Colors.green,
                           ),
                         );
                       } else {
-                        ScaffoldMessenger.of(
-                          widget.scaffoldContext,
-                        ).showSnackBar(
+                        final errorMessage =
+                            widget
+                                .undoDelete
+                                .resultSignal
+                                .value
+                                ?.failureValueOrNull
+                                ?.toString();
+
+                        messenger.showSnackBar(
                           SnackBar(
-                            content: Text(
-                              '${widget.undoDelete.resultSignal.value?.failureValueOrNull ?? 'Erro desconhecido'}',
-                            ), // Mensagem de restauração
-                            backgroundColor:
-                                Colors.red, // Cor do snackbar verde
+                            content: Text(errorMessage ?? 'Erro desconhecido'),
+                            backgroundColor: Colors.red,
                           ),
                         );
                       }
@@ -309,47 +274,40 @@ class _TransactionCardSheetsState extends State<TransactionCardSheets>
               );
             },
             child: Card(
-              margin: const EdgeInsets.symmetric(
-                horizontal: 5,
-                vertical: 4,
-              ), // Margem do card da transação
-              elevation: 0, // Sem sombra
+              margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+              elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12), // Bordas arredondadas
-                side: BorderSide(
-                  color: Colors.grey.shade300,
-                ), // Borda cinza clara
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.grey.shade300),
               ),
               child: ListTile(
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 8,
-                ), // Espaçamento interno do item
+                ),
                 leading: CircleAvatar(
                   radius: 22,
-                  backgroundColor: color.withValues(
-                    alpha: 0.2,
-                  ), // Fundo com transparência
+                  backgroundColor: color.withValues(alpha: 0.2),
                   child: Icon(
-                    title == 'Income' ? Icons.attach_money : Icons.shopping_bag,
-                    color: color, // Cor do ícone conforme tipo
+                    title == TransactionType.income.namePlural
+                        ? Icons.attach_money
+                        : Icons.shopping_bag,
+                    color: color,
                   ),
                 ),
                 title: Text(
-                  transaction.title, // Título da transação
+                  transaction.title,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 subtitle: Text(
-                  Formatter.formatDate(transaction.date), // Data formatada
+                  Formatter.formatDate(transaction.date),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 trailing: Text(
-                  Formatter.formatCurrency(
-                    transaction.amount,
-                  ), // Valor formatado em moeda
+                  Formatter.formatCurrency(transaction.amount),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: color, // Cor do texto conforme tipo
+                    color: color,
                   ),
                 ),
               ),

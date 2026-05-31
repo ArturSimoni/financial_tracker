@@ -5,41 +5,35 @@ import 'package:flutter/material.dart';
 
 import 'transaction_form.dart';
 
-/// Bottom sheet para adicionar transações de receita ou despesa
 class TransactionSheet extends StatelessWidget {
-  /// Tipo da transação (receita ou despesa)
   final TransactionType type;
 
-  /// Comando que deve ser observado o estado de execução
-  /// e o resultado da execução
   final Command1<void, Failure, TransactionEntity> submitCommand;
 
-  /// Função callback quando a transação é submetida
-  // final Function(TransactionEntity newTransaction) onSubmit;
+  final TransactionEntity? transaction;
 
   const TransactionSheet({
     super.key,
     required this.type,
-    // required this.onSubmit,
     required this.submitCommand,
+    this.transaction,
   });
 
-  /// Método auxiliar para exibir o bottom sheet como um modal
   static Future<void> show({
     required BuildContext context,
     required TransactionType type,
-    // required Function(TransactionEntity newTransaction) onSubmit,
     required Command1<void, Failure, TransactionEntity> submitCommand,
+    TransactionEntity? transaction,
   }) async {
     return showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Permite expandir até o topo
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder:
           (context) => TransactionSheet(
             type: type,
-            // onSubmit: onSubmit,
             submitCommand: submitCommand,
+            transaction: transaction,
           ),
     );
   }
@@ -50,9 +44,12 @@ class TransactionSheet extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final isIncome = type == TransactionType.income;
     final color = isIncome ? colorScheme.primary : colorScheme.secondary;
-    final formTitle = type.nameSingular; // Retorna 'Receita' ou 'Despesa'
+    final formTitle = type.nameSingular;
 
-    // Altura disponível para o bottom sheet (75% da altura da tela)
+    final isEditing = transaction != null;
+    final displayTitle =
+        isEditing ? 'Editar $formTitle' : 'Adicionar $formTitle';
+
     final availableHeight = MediaQuery.of(context).size.height * 0.75;
 
     return Container(
@@ -67,7 +64,6 @@ class TransactionSheet extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Cabeçalho e "alça" do sheet
           Container(
             decoration: BoxDecoration(
               color: color,
@@ -78,7 +74,6 @@ class TransactionSheet extends StatelessWidget {
             ),
             child: Column(
               children: [
-                // Alça para indicar que o sheet pode ser arrastado
                 Container(
                   margin: const EdgeInsets.symmetric(vertical: 12),
                   width: 40,
@@ -89,19 +84,23 @@ class TransactionSheet extends StatelessWidget {
                   ),
                 ),
 
-                // Título do cabeçalho
+                // Título do cabeçalho mudando conforme a ação
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        isIncome ? Icons.trending_up : Icons.trending_down,
+                        isEditing
+                            ? Icons.edit_note
+                            : (isIncome
+                                ? Icons.trending_up
+                                : Icons.trending_down),
                         color: colorScheme.onPrimary,
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Adicionar $formTitle',
+                        displayTitle,
                         style: theme.textTheme.titleLarge?.copyWith(
                           color: colorScheme.onPrimary,
                           fontWeight: FontWeight.bold,
@@ -114,22 +113,17 @@ class TransactionSheet extends StatelessWidget {
             ),
           ),
 
-          // Formulário para inserir a transação
           Expanded(
             child: SingleChildScrollView(
               child: Padding(
                 padding: EdgeInsets.only(
-                  // Aplica um padding inferior para evitar que o teclado cubra os campos
                   bottom: MediaQuery.of(context).viewInsets.bottom,
                 ),
                 child: TransactionForm(
                   type: type,
                   color: color,
                   submitCommand: submitCommand,
-                  // onSubmit: (newTransaction) {
-                  //   onSubmit(newTransaction);
-                  //   Navigator.pop(context); // Fecha o bottom sheet
-                  // },
+                  transaction: transaction,
                 ),
               ),
             ),
